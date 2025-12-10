@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { useEffect, useState, useRef } from "react";
 import L from "leaflet";
+import "leaflet/dist/leaflet.css";
 
 // Fix for Leaflet icons in Next.js
 if (typeof window !== "undefined") {
@@ -13,40 +13,6 @@ if (typeof window !== "undefined") {
     iconUrl: "/leaflet/marker-icon.png",
     shadowUrl: "/leaflet/marker-shadow.png",
   });
-}
-
-type LocationMarkerProps = {
-  position: [number, number] | null;
-  onPositionChange: (lat: number, lng: number) => void;
-};
-
-function LocationMarker({ position, onPositionChange }: LocationMarkerProps) {
-  const map = useMapEvents({
-    click(e) {
-      onPositionChange(e.latlng.lat, e.latlng.lng);
-    },
-  });
-
-  // Pan to position when it changes
-  useEffect(() => {
-    if (position) {
-      map.flyTo(position, map.getZoom());
-    }
-  }, [position, map]);
-
-  return position ? (
-    <Marker
-      position={position}
-      draggable={true}
-      eventHandlers={{
-        dragend: (e) => {
-          const marker = e.target;
-          const pos = marker.getLatLng();
-          onPositionChange(pos.lat, pos.lng);
-        },
-      }}
-    />
-  ) : null;
 }
 
 type LeafletMapProps = {
@@ -60,6 +26,9 @@ export default function LeafletMap({
   onLocationSelect,
   selectedLocation,
 }: LeafletMapProps) {
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
 
   // Try to get user's current location
@@ -80,30 +49,88 @@ export default function LeafletMap({
     }
   }, []);
 
-  // Determine initial center and zoom
-  const initialCenter = center || 
-    (selectedLocation ? [selectedLocation.latitude, selectedLocation.longitude] as [number, number] : null) ||
-    userLocation || 
-    [-15.7801, -47.9292] as [number, number]; // Center of Brazil
+  // Initialize map
+  useEffect(() => {
+    if (!containerRef.current) return;
+    if (mapRef.current) return; // Map already initialized
 
-  const initialZoom = center || selectedLocation || userLocation ? 15 : 4;
+    // Determine initial center and zoom
+    const initialCenter = center || 
+      (selectedLocation ? [selectedLocation.latitude, selectedLocation.longitude] as [number, number] : null) ||
+      userLocation || 
+      [-15.7801, -47.9292] as [number, number]; // Center of Brazil
 
-  const position = selectedLocation
-    ? ([selectedLocation.latitude, selectedLocation.longitude] as [number, number])
-    : null;
+    const initialZoom = center || selectedLocation || userLocation ? 15 : 4;
 
-  return (
-    <MapContainer
-      center={initialCenter}
-      zoom={initialZoom}
-      style={{ height: "100%", width: "100%" }}
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <LocationMarker position={position} onPositionChange={onLocationSelect} />
-    </MapContainer>
-  );
+    // Create map
+    const map = L.map(containerRef.current, {
+      center: initialCenter,
+      zoom: initialZoom,
+      scrollWheelZoom: true,
+    });
+
+    // Add tile layer
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Handle map clicks
+    map.on("click", (e) => {
+      onLocationSelect(e.latlng.lat, e.latlng.lng);
+    });
+
+    mapRef.current = map;
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []); // Only run once on mount
+
+  // Update marker when selectedLocation changes
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // Remove existing marker
+    if (markerRef.current) {
+      markerRef.current.remove();
+      markerRef.current = null;
+    }
+
+    // Add new marker if location is selected
+    if (selectedLocation) {
+      const position: [number, number] = [selectedLocation.latitude, selectedLocation.longitude];
+      
+      const marker = L.marker(position, {
+        draggable: true,
+      }).addTo(mapRef.current);
+
+      // Handle marker drag
+      marker.on("dragend", (e) => {
+        const pos = e.target.getLatLng();
+        onLocationSelect(pos.lat, pos.lng);
+      });
+
+      markerRef.current = marker;
+
+      // Pan to new location
+      mapRef.current.flyTo(position, mapRef.current.getZoom());
+    }
+  }, [selectedLocation, onLocationSelect]);
+
+  // Update center when center prop changes
+  useEffect(() => {
+    if (!mapRef.current || !center) return;
+    mapRef.current.flyTo(center, 15);
+  }, [center]);
+
+  // Update center when user location is determined
+  useEffect(() => {
+    if (!mapRef.current || !userLocation || selectedLocation) return;
+    mapRef.current.flyTo(userLocation, 15);
+  }, [userLocation, selectedLocation]);
+
+  return <div ref={containerRef} style={{ height: "100%", width: "100%" }} />;
 }
