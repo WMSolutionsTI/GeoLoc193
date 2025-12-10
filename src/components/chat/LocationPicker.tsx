@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
+import dynamic from "next/dynamic";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,17 @@ import {
   Search,
   CheckCircle,
 } from "lucide-react";
+import "leaflet/dist/leaflet.css";
+
+// Dynamically import LeafletMap to avoid SSR issues
+const LeafletMap = dynamic(() => import("./LeafletMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-[400px] bg-gray-100 rounded-lg flex items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+    </div>
+  ),
+});
 
 type LocationPickerProps = {
   isOpen: boolean;
@@ -119,17 +131,33 @@ export function LocationPicker({
     setError(null);
 
     try {
-      // TODO: Implement address geocoding using Google Geocoding API
-      // Reference: https://developers.google.com/maps/documentation/geocoding/overview
-      // This requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in environment
-      // For now, we'll just show an error that this needs to be implemented
-      setError("Busca por endereço ainda não implementada. Por favor, clique no mapa para selecionar a localização.");
+      // Use Nominatim (OpenStreetMap) for geocoding - free and no API key required
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchAddress)}&limit=1&accept-language=pt-BR`,
+        {
+          headers: {
+            "User-Agent": "GeoLoc193/1.0 (https://sos193.org)",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.length > 0) {
+          const result = data[0];
+          handleMapClick(parseFloat(result.lat), parseFloat(result.lon));
+        } else {
+          setError("Endereço não encontrado. Por favor, tente outro endereço ou clique no mapa.");
+        }
+      } else {
+        setError("Erro ao buscar endereço. Por favor, tente novamente.");
+      }
     } catch {
       setError("Erro ao buscar endereço");
     } finally {
       setLoading(false);
     }
-  }, [searchAddress]);
+  }, [searchAddress, handleMapClick]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -231,36 +259,13 @@ export function LocationPicker({
               </div>
             )}
 
-            {/* Interactive Map Placeholder */}
-            <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-8 text-center space-y-4">
-              <MapIcon className="h-16 w-16 text-gray-400 mx-auto" />
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-600">
-                  Mapa Interativo
-                </p>
-                <p className="text-xs text-gray-500">
-                  Para implementar o mapa interativo, você precisará:
-                </p>
-                <ul className="text-xs text-gray-500 text-left list-disc list-inside space-y-1">
-                  <li>Adicionar Google Maps API key no .env</li>
-                  <li>Instalar @googlemaps/react-wrapper ou similar</li>
-                  <li>Configurar o componente de mapa abaixo</li>
-                </ul>
-              </div>
-              
-              {/* Simulated location selection for demo */}
-              <div className="pt-4">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    // Simulate clicking on map - use approximate center of Brazil for demo
-                    handleMapClick(-15.7939, -47.8828);
-                  }}
-                >
-                  Simular clique no mapa (demo)
-                </Button>
-              </div>
+            {/* Interactive Leaflet Map */}
+            <div className="h-[400px] w-full rounded-lg overflow-hidden border border-gray-300">
+              <LeafletMap
+                center={manualLocation ? [manualLocation.latitude, manualLocation.longitude] : undefined}
+                onLocationSelect={handleMapClick}
+                selectedLocation={manualLocation}
+              />
             </div>
 
             {manualLocation && (
