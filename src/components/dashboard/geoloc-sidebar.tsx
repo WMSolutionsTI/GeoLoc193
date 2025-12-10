@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import {
   ClipboardList,
   BarChart3,
-  PlusCircle,
   MapPin,
   ArrowLeft,
 } from "lucide-react";
@@ -24,11 +23,6 @@ const navItems: NavItem[] = [
     title: "Solicitações",
     href: "/apps/geoloc193/atendente",
     icon: ClipboardList,
-  },
-  {
-    title: "Nova Solicitação",
-    href: "/apps/geoloc193/atendente/nova",
-    icon: PlusCircle,
   },
   {
     title: "Estatísticas",

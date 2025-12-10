@@ -12,6 +12,7 @@ import {
 import { ExpirationTimer } from "@/components/dashboard/expiration-timer";
 import { EmergencyButton } from "@/components/shared/emergency-button";
 import { SolicitanteChat } from "@/components/chat/SolicitanteChat";
+import { LocationPicker } from "@/components/chat/LocationPicker";
 import { MapPin, AlertTriangle, Flame, Loader2 } from "lucide-react";
 
 type Solicitacao = {
@@ -34,6 +35,8 @@ export default function SolicitacaoPage() {
   const [expired, setExpired] = useState(false);
   // Auto-show chat after location is shared
   const [showChat, setShowChat] = useState(false);
+  // Location picker dialog
+  const [locationPickerOpen, setLocationPickerOpen] = useState(false);
 
   const fetchSolicitacao = useCallback(async () => {
     try {
@@ -67,23 +70,24 @@ export default function SolicitacaoPage() {
     return () => clearInterval(interval);
   }, [fetchSolicitacao]);
 
-  const handleSendLocation = async () => {
-    if (!navigator.geolocation) {
-      setError("Geolocalização não é suportada pelo seu navegador");
-      return;
-    }
+  const openLocationPicker = () => {
+    setLocationPickerOpen(true);
+  };
 
+  const handleLocationSelected = async (location: {
+    latitude: number;
+    longitude: number;
+    accuracy?: number;
+  }) => {
     setSendingLocation(true);
     setError(null);
 
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        try {
-          const coordenadas = {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-          };
+    try {
+      const coordenadas = {
+        latitude: location.latitude,
+        longitude: location.longitude,
+        accuracy: location.accuracy,
+      };
 
           // First, send the coordinates
           const response = await fetch(`/api/solicitacoes/${token}`, {
@@ -137,38 +141,15 @@ export default function SolicitacaoPage() {
             // Don't fail if message fails
           }
 
-          setLocationSent(true);
-          // Auto-show chat after sending location
-          setShowChat(true);
-          fetchSolicitacao();
-        } catch {
-          setError("Erro ao enviar localização. Tente novamente.");
-        } finally {
-          setSendingLocation(false);
-        }
-      },
-      (err) => {
-        setSendingLocation(false);
-        switch (err.code) {
-          case err.PERMISSION_DENIED:
-            setError("Permissão de localização negada. Por favor, permita o acesso à sua localização.");
-            break;
-          case err.POSITION_UNAVAILABLE:
-            setError("Localização indisponível. Verifique se o GPS está ativado.");
-            break;
-          case err.TIMEOUT:
-            setError("Tempo esgotado ao obter localização. Tente novamente.");
-            break;
-          default:
-            setError("Erro ao obter localização.");
-        }
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 30000,
-        maximumAge: 0,
-      }
-    );
+      setLocationSent(true);
+      // Auto-show chat after sending location
+      setShowChat(true);
+      fetchSolicitacao();
+    } catch {
+      setError("Erro ao enviar localização. Tente novamente.");
+    } finally {
+      setSendingLocation(false);
+    }
   };
 
   if (loading) {
@@ -259,7 +240,7 @@ export default function SolicitacaoPage() {
                 )}
 
                 <EmergencyButton
-                  onClick={handleSendLocation}
+                  onClick={openLocationPicker}
                   loading={sendingLocation}
                   className="w-full"
                 />
@@ -271,11 +252,18 @@ export default function SolicitacaoPage() {
           {showChat && solicitacao && (
             <SolicitanteChat
               solicitacaoId={solicitacao.id}
-              onSendLocation={handleSendLocation}
+              onSendLocation={openLocationPicker}
             />
           )}
         </div>
       </main>
+
+      {/* Location Picker Dialog */}
+      <LocationPicker
+        isOpen={locationPickerOpen}
+        onClose={() => setLocationPickerOpen(false)}
+        onLocationSelected={handleLocationSelected}
+      />
 
       {/* Footer */}
       <footer className="bg-white/10 backdrop-blur-sm p-4 text-center">

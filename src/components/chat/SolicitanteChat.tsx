@@ -75,12 +75,94 @@ export function SolicitanteChat({
     // Poll for new messages every 3 seconds
     pollIntervalRef.current = setInterval(fetchMessages, 3000);
     
+    // Request notification permission and register service worker
+    void initializePushNotifications();
+    
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchMessages]);
+
+  const initializePushNotifications = async () => {
+    // Check if browser supports notifications
+    if (!("Notification" in window)) {
+      console.log("This browser does not support notifications");
+      return;
+    }
+
+    // Check if service workers are supported
+    if (!("serviceWorker" in navigator)) {
+      console.log("This browser does not support service workers");
+      return;
+    }
+
+    // If permission is default, request it
+    if (Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      
+      if (permission === "granted") {
+        await registerPushSubscription();
+      }
+    } else if (Notification.permission === "granted") {
+      await registerPushSubscription();
+    }
+  };
+
+  const registerPushSubscription = async () => {
+    try {
+      // Register service worker
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      console.log("Service Worker registered:", registration);
+
+      // Wait for service worker to be ready
+      await navigator.serviceWorker.ready;
+
+      // Get VAPID public key - shared constant for consistency
+      const vapidPublicKey = 
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+
+      // Convert base64 string to Uint8Array
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+      // Subscribe to push notifications
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      });
+
+      console.log("Push subscription:", subscription);
+
+      // Send subscription to server
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription,
+          solicitacaoId,
+        }),
+      });
+
+      console.log("Push subscription saved to server");
+    } catch (error) {
+      console.error("Error registering push subscription:", error);
+    }
+  };
+
+  // Helper function to convert VAPID key
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
 
   useEffect(() => {
     scrollToBottom();
@@ -254,31 +336,44 @@ export function SolicitanteChat({
         <div ref={messagesEndRef} />
       </CardContent>
       <div className="p-4 border-t">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Digite sua mensagem..."
-            disabled={sending}
-            className="flex-1"
-          />
-          {/* Audio recording - mobile friendly */}
-          <AudioRecorder onRecordingComplete={handleSendAudio} disabled={sending} />
-          {/* Camera capture - mobile friendly */}
-          <PhotoCapture onPhotoCapture={handleSendPhoto} disabled={sending} />
-          {/* Location button */}
-          {onSendLocation && (
-            <Button type="button" variant="outline" onClick={onSendLocation}>
-              <MapPin className="h-4 w-4" />
+        <form onSubmit={handleSendMessage} className="space-y-2">
+          {/* Row 1: Text input and send button */}
+          <div className="flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Digite sua mensagem..."
+              disabled={sending}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={sending || !newMessage.trim()} size="lg">
+              {sending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </Button>
-          )}
-          <Button type="submit" disabled={sending || !newMessage.trim()}>
-            {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
+          </div>
+          
+          {/* Row 2: Media action buttons - centered and larger for mobile */}
+          <div className="flex items-center justify-center gap-3">
+            {/* Audio recording - mobile friendly */}
+            <AudioRecorder onRecordingComplete={handleSendAudio} disabled={sending} />
+            {/* Camera capture - mobile friendly */}
+            <PhotoCapture onPhotoCapture={handleSendPhoto} disabled={sending} />
+            {/* Location button */}
+            {onSendLocation && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onSendLocation}
+                size="lg"
+                className="min-w-[48px] min-h-[48px]"
+              >
+                <MapPin className="h-5 w-5" />
+              </Button>
             )}
-          </Button>
+          </div>
         </form>
       </div>
     </Card>

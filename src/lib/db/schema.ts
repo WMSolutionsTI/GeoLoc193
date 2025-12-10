@@ -80,6 +80,8 @@ export const solicitacoes = pgTable("solicitacoes", {
   // SMS status fields - deprecated but kept for backward compatibility
   smsStatus: varchar("sms_status", { length: 20 }), // 'pending', 'delivered', 'failed'
   smsErrorCode: varchar("sms_error_code", { length: 100 }),
+  // Push notification subscription
+  pushSubscription: json("push_subscription"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
 });

@@ -55,8 +55,8 @@ export function AudioRecorder({ onRecordingComplete, disabled }: AudioRecorderPr
 
   if (isProcessing) {
     return (
-      <Button type="button" variant="outline" disabled>
-        <Loader2 className="h-4 w-4 animate-spin" />
+      <Button type="button" variant="outline" disabled size="lg" className="min-w-[48px] min-h-[48px]">
+        <Loader2 className="h-5 w-5 animate-spin" />
       </Button>
     );
   }
@@ -67,11 +67,13 @@ export function AudioRecorder({ onRecordingComplete, disabled }: AudioRecorderPr
       variant={isRecording ? "destructive" : "outline"}
       onClick={isRecording ? stopRecording : startRecording}
       disabled={disabled}
+      size="lg"
+      className="min-w-[48px] min-h-[48px]"
     >
       {isRecording ? (
-        <Square className="h-4 w-4" />
+        <Square className="h-5 w-5" />
       ) : (
-        <Mic className="h-4 w-4" />
+        <Mic className="h-5 w-5" />
       )}
     </Button>
   );
