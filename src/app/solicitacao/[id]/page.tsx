@@ -87,20 +87,63 @@ export default function SolicitacaoPage() {
             accuracy: position.coords.accuracy,
           };
 
+          // First, send the coordinates
           const response = await fetch(`/api/solicitacoes/${token}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ coordenadas }),
           });
 
-          if (response.ok) {
-            setLocationSent(true);
-            // Auto-show chat after sending location
-            setShowChat(true);
-            fetchSolicitacao();
-          } else {
+          if (!response.ok) {
             throw new Error("Erro ao enviar localização");
           }
+
+          // Then, fetch geocoding information
+          try {
+            const geocodingResponse = await fetch(
+              `/api/geocoding?lat=${coordenadas.latitude}&lng=${coordenadas.longitude}`
+            );
+            
+            if (geocodingResponse.ok) {
+              const geocodingData = await geocodingResponse.json();
+              
+              // Update solicitacao with geocoding data
+              await fetch(`/api/solicitacoes/${token}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  endereco: geocodingData.endereco,
+                  cidade: geocodingData.cidade,
+                  logradouro: geocodingData.logradouro,
+                  plusCode: geocodingData.plusCode,
+                }),
+              });
+            }
+          } catch (geocodingError) {
+            console.error("Error fetching geocoding:", geocodingError);
+            // Don't fail if geocoding fails
+          }
+
+          // Send initial atendente message to chat
+          try {
+            await fetch(`/api/solicitacoes/${token}/mensagens`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                conteudo: `Olá! Sua localização foi recebida com sucesso. Você pode usar esta janela de chat para enviar informações adicionais como texto, áudio ou fotos que possam ajudar no atendimento.`,
+                remetente: "atendente",
+                tipo: "text",
+              }),
+            });
+          } catch (messageError) {
+            console.error("Error sending initial message:", messageError);
+            // Don't fail if message fails
+          }
+
+          setLocationSent(true);
+          // Auto-show chat after sending location
+          setShowChat(true);
+          fetchSolicitacao();
         } catch {
           setError("Erro ao enviar localização. Tente novamente.");
         } finally {
@@ -182,93 +225,50 @@ export default function SolicitacaoPage() {
       {/* Content */}
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full space-y-4">
-          <Card>
-            <CardHeader className="text-center">
-              {locationSent ? (
-                <>
-                  <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-4" />
-                  <CardTitle className="text-2xl text-green-600">
-                    Localização Enviada!
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Obrigado, {solicitacao?.nomeSolicitante}! Sua localização foi recebida.
-                  </CardDescription>
-                </>
-              ) : (
-                <>
-                  <MapPin className="h-20 w-20 text-primary mx-auto mb-4" />
-                  <CardTitle className="text-2xl">
-                    Olá, {solicitacao?.nomeSolicitante}!
-                  </CardTitle>
-                  <CardDescription className="text-lg">
-                    Precisamos da sua localização para enviar socorro.
-                  </CardDescription>
-                </>
-              )}
-            </CardHeader>
+          {/* Only show location card if location has not been sent */}
+          {!locationSent && (
+            <Card>
+              <CardHeader className="text-center">
+                <MapPin className="h-20 w-20 text-primary mx-auto mb-4" />
+                <CardTitle className="text-2xl">
+                  Olá, {solicitacao?.nomeSolicitante}!
+                </CardTitle>
+                <CardDescription className="text-lg">
+                  Precisamos da sua localização para enviar socorro.
+                </CardDescription>
+              </CardHeader>
 
-            <CardContent className="space-y-6">
-              {!locationSent && (
-                <>
-                  <div className="flex justify-center">
-                    {solicitacao?.linkExpiracao && (
-                      <ExpirationTimer
-                        expirationDate={solicitacao.linkExpiracao}
-                        onExpire={() => setExpired(true)}
-                      />
-                    )}
-                  </div>
-
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                    <p className="text-sm text-yellow-800">
-                      <strong>Importante:</strong> Clique no botão abaixo e permita
-                      o acesso à sua localização quando solicitado pelo navegador.
-                    </p>
-                  </div>
-
-                  {error && (
-                    <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                      <p className="text-sm text-red-700">{error}</p>
-                    </div>
+              <CardContent className="space-y-6">
+                <div className="flex justify-center">
+                  {solicitacao?.linkExpiracao && (
+                    <ExpirationTimer
+                      expirationDate={solicitacao.linkExpiracao}
+                      onExpire={() => setExpired(true)}
+                    />
                   )}
+                </div>
 
-                  <EmergencyButton
-                    onClick={handleSendLocation}
-                    loading={sendingLocation}
-                    className="w-full"
-                  />
-                </>
-              )}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Importante:</strong> Clique no botão abaixo e permita
+                    o acesso à sua localização quando solicitado pelo navegador.
+                  </p>
+                </div>
 
-              {locationSent && (
-                <>
-                  {solicitacao?.coordenadas && (
-                    <div className="bg-gray-100 rounded-lg p-4 text-center">
-                      <p className="text-sm text-gray-600 mb-2">Coordenadas enviadas:</p>
-                      <Badge variant="secondary" className="text-xs">
-                        {solicitacao.coordenadas.latitude.toFixed(6)},{" "}
-                        {solicitacao.coordenadas.longitude.toFixed(6)}
-                      </Badge>
-                    </div>
-                  )}
+                {error && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <p className="text-sm text-red-700">{error}</p>
+                  </div>
+                )}
 
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={handleSendLocation}
-                    disabled={sendingLocation}
-                  >
-                    {sendingLocation ? (
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    ) : (
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                    )}
-                    Atualizar Localização
-                  </Button>
-                </>
-              )}
-            </CardContent>
-          </Card>
+                <EmergencyButton
+                  onClick={handleSendLocation}
+                  loading={sendingLocation}
+                  className="w-full"
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Chat Section - Auto-shown after location is sent */}
           {showChat && solicitacao && (

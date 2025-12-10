@@ -168,6 +168,8 @@ export default function WorkspacePage() {
                 <Link
                   key={app.slug}
                   href={app.route}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="block focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded-lg"
                 >
                   <Card className="h-full cursor-pointer transition-all hover:shadow-lg hover:scale-105">

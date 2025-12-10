@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { SolicitacaoRow } from "@/components/dashboard/solicitacao-card";
 import { AtendenteChat } from "@/components/chat/AtendenteChat";
-import { SmsStatusBadge } from "@/components/solicitacao/SmsStatusBadge";
 import {
   Loader2,
   Plus,
@@ -48,6 +47,8 @@ type Solicitacao = {
   status: string | null;
   coordenadas: { latitude: number; longitude: number } | null;
   endereco: string | null;
+  cidade: string | null;
+  logradouro: string | null;
   plusCode: string | null;
   createdAt: string | null;
   updatedAt: string | null;
@@ -323,19 +324,12 @@ export default function AtendentePage() {
                   </p>
                   <p className="font-medium text-lg">{selectedSolicitacao.telefone}</p>
                 </div>
-                <div className="space-y-1">
+                <div className="space-y-1 col-span-2">
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <User className="w-4 h-4" />
                     Atendente
                   </p>
                   <p className="font-medium">{selectedSolicitacao.atendenteName || selectedSolicitacao.atendenteUsername || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Status SMS</p>
-                  <SmsStatusBadge 
-                    status={selectedSolicitacao.smsStatus || null} 
-                    errorCode={selectedSolicitacao.smsErrorCode}
-                  />
                 </div>
               </div>
 
@@ -362,6 +356,20 @@ export default function AtendentePage() {
                     </div>
                   </div>
 
+                  {selectedSolicitacao.cidade && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Cidade</p>
+                      <p className="font-medium">{selectedSolicitacao.cidade}</p>
+                    </div>
+                  )}
+
+                  {selectedSolicitacao.logradouro && (
+                    <div>
+                      <p className="text-sm text-muted-foreground">Logradouro</p>
+                      <p className="font-medium">{selectedSolicitacao.logradouro}</p>
+                    </div>
+                  )}
+
                   {selectedSolicitacao.plusCode && (
                     <div>
                       <p className="text-sm text-muted-foreground">Plus Code</p>
@@ -371,8 +379,8 @@ export default function AtendentePage() {
 
                   {selectedSolicitacao.endereco && (
                     <div>
-                      <p className="text-sm text-muted-foreground">Endereço</p>
-                      <p className="font-medium">{selectedSolicitacao.endereco}</p>
+                      <p className="text-sm text-muted-foreground">Endereço Completo</p>
+                      <p className="font-medium text-sm">{selectedSolicitacao.endereco}</p>
                     </div>
                   )}
 
