@@ -26,15 +26,12 @@ type LocationPickerProps = {
   onLocationSelected: (location: { latitude: number; longitude: number; accuracy?: number }) => void;
 };
 
-type LocationOption = "current" | "manual" | null;
-
 export function LocationPicker({
   isOpen,
   onClose,
   onLocationSelected,
 }: LocationPickerProps) {
   const [step, setStep] = useState<"choice" | "map">("choice");
-  const [selectedOption, setSelectedOption] = useState<LocationOption>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [manualLocation, setManualLocation] = useState<{
@@ -42,17 +39,14 @@ export function LocationPicker({
     longitude: number;
   } | null>(null);
   const [searchAddress, setSearchAddress] = useState("");
-  const [mapLoaded, setMapLoaded] = useState(false);
 
   // Reset state when dialog opens
   useEffect(() => {
     if (isOpen) {
       setStep("choice");
-      setSelectedOption(null);
       setError(null);
       setManualLocation(null);
       setSearchAddress("");
-      setMapLoaded(false);
     }
   }, [isOpen]);
 
@@ -101,7 +95,6 @@ export function LocationPicker({
   }, [onLocationSelected, onClose]);
 
   const handleManualSelection = useCallback(() => {
-    setSelectedOption("manual");
     setStep("map");
   }, []);
 
@@ -130,7 +123,7 @@ export function LocationPicker({
       // For now, we'll just show an error that this needs to be implemented
       // In production, you'd call a geocoding service
       setError("Busca por endereço ainda não implementada. Por favor, clique no mapa para selecionar a localização.");
-    } catch (err) {
+    } catch {
       setError("Erro ao buscar endereço");
     } finally {
       setLoading(false);

@@ -44,7 +44,6 @@ export function SolicitanteChat({
   const [chatExpired, setChatExpired] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -77,13 +76,14 @@ export function SolicitanteChat({
     pollIntervalRef.current = setInterval(fetchMessages, 3000);
     
     // Request notification permission and register service worker
-    initializePushNotifications();
+    void initializePushNotifications();
     
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchMessages]);
 
   const initializePushNotifications = async () => {
@@ -99,13 +99,9 @@ export function SolicitanteChat({
       return;
     }
 
-    // Check current permission
-    setNotificationPermission(Notification.permission);
-
     // If permission is default, request it
     if (Notification.permission === "default") {
       const permission = await Notification.requestPermission();
-      setNotificationPermission(permission);
       
       if (permission === "granted") {
         await registerPushSubscription();

@@ -1,8 +1,6 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -73,8 +71,6 @@ const solicitacaoSchema = z.object({
 type SolicitacaoForm = z.infer<typeof solicitacaoSchema>;
 
 export default function GeolocAtendentePage() {
-  const router = useRouter();
-  const { data: session } = useSession();
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

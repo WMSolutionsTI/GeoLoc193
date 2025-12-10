@@ -39,7 +39,6 @@ export async function PATCH(
       .update(users)
       .set({
         name: name.trim(),
-        updatedAt: new Date(),
       })
       .where(eq(users.id, userId))
       .returning({

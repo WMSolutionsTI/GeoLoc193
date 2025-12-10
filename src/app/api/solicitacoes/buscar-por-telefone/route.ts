@@ -25,10 +25,6 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Use last 8 digits for search (RIGHT function)
-    // Build the search pattern - safe since we validated only digits
-    const searchPattern = '%' + telefone;
-
     // Buscar solicitação ativa (não arquivada, não finalizada, não expirada) 
     // que termine com os dígitos fornecidos (últimos 8 dígitos)
     // Check for active conversation within 2 hours

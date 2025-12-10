@@ -28,6 +28,7 @@ export type PushNotificationPayload = {
 };
 
 export async function sendPushNotification(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   subscription: any,
   payload: PushNotificationPayload
 ): Promise<boolean> {
@@ -49,6 +50,7 @@ export async function sendPushNotification(
     await webpush.sendNotification(subscription, notificationPayload);
     console.log("Push notification sent successfully");
     return true;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error sending push notification:", error);
     
