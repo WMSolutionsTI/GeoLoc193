@@ -1,5 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -27,10 +28,9 @@ export const authOptions: NextAuthOptions = {
             return null;
           }
 
-          // TODO: In production, use bcrypt to hash and compare passwords
-          // This plain text comparison is for development only
-          // Example: const isValid = await bcrypt.compare(credentials.password, user.password);
-          if (user.password !== credentials.password) {
+          // Compare password using bcrypt
+          const isValidPassword = await bcrypt.compare(credentials.password, user.password);
+          if (!isValidPassword) {
             return null;
           }
 

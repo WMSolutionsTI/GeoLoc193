@@ -3,22 +3,15 @@ set -e
 
 echo "📡 Iniciando container GeoLoc193..."
 
-# Opcional: esperar o banco responder, se for outro container ou servidor remoto
-# Se quiser algo mais robusto, pode usar 'wait-for-it' ou 'nc' aqui.
+# Aguardar banco de dados
+echo "⏳ Aguardando PostgreSQL..."
+sleep 5
 
-echo "🔄 Rodando migrações do banco..."
-if npm run db:migrate; then
-  echo "✅ Migrações concluídas"
-else
-  echo "⚠️ Erro ou script db:migrate inexistente. Seguindo assim mesmo..." >&2
-fi
+# Criar pastas de uploads se não existirem
+mkdir -p /app/.next/standalone/uploads
+mkdir -p /app/.next/standalone/public/uploads
+chmod -R 755 /app/.next/standalone/uploads /app/.next/standalone/public/uploads
 
-echo "🌱 Rodando seed do banco..."
-if npm run db:seed; then
-  echo "✅ Seed concluído"
-else
-  echo "⚠️ Erro ou script db:seed inexistente. Seguindo assim mesmo..." >&2
-fi
-
-echo "🚀 Iniciando Next.js em modo produção..."
-exec npm start
+echo "🚀 Iniciando Next.js standalone..."
+cd /app/.next/standalone
+exec node server.js

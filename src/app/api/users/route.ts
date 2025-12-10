@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import bcrypt from "bcryptjs";
 import { authOptions } from "@/lib/auth/options";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -74,12 +75,14 @@ export async function POST(request: Request) {
       );
     }
 
-    // TODO: In production, hash the password with bcrypt
+    // Hash the password with bcrypt
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const userData: any = {
       name,
       username,
-      password, // Should be hashed in production
+      password: hashedPassword,
       role,
       pa: pa || null,
       allowedApps: allowedApps || [],

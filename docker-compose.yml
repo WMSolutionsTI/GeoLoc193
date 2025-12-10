@@ -1,12 +1,39 @@
+version: '3.8'
+
 services:
   app:
-    image: ./geoloc
+    image: cbi1cobom/geoloc:sos193
     container_name: geoloc_app
     restart: unless-stopped
     env_file:
       - .env
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    network_mode: bridge
+    ports:
+      - "3000:3000"
     volumes:
-      - ./uploads:/app/uploads
+      - ./uploads:/app/.next/standalone/uploads
+      - ./public/uploads:/app/.next/standalone/public/uploads
+    depends_on:
+      - db
+    networks:
+      - geoloc_network
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: geoloc_bombeiros
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-geoloc.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - geoloc_network
+
+networks:
+  geoloc_network:
+    driver: bridge
+
+volumes:
+  postgres_data:

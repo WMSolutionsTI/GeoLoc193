@@ -155,64 +155,104 @@ CREATE INDEX idx_short_urls_short_code ON short_urls(short_code);
 
 -- ====================== SEED DATA ======================
 
--- Usuários administrativos com senhas REAIS bcrypt
+-- Usuários administrativos com senhas bcrypt
+-- Hashes gerados para as senhas especificadas
 INSERT INTO users (username, password, name, role, pa, active, allowed_apps) VALUES
--- admin (senha: Admin@123!)
+-- admin (senha: admincobom)
 (
     'admin',
-    '$2b$10$z6qB5nR4tS2vW3xY8zAbC.K7lNmO8pQsR9tUvWxYzA2b4c6d8f0g2h4j6',
+    '$2a$10$8wTDh8HMerNaeH8ecS62RuUMgsWF788kzSwFBtC4gMQ/Zvqo/qtSC',
     'Administrador Sistema',
     'ADMINISTRADOR',
     'PA-01',
     TRUE,
     '["geoloc193", "viaturas", "contingencia", "chat", "headsets", "info-cobom", "agenda", "gestao-dejem", "mapa-offline", "auditoria"]'::jsonb
 ),
--- supervisor (senha: Super@123!)
+-- supervisor (senha: supervisorcobom)
 (
     'supervisor',
-    '$2b$10$y5pA4mQ3rS1uV2wX7zY9B.J6kLmN6pQrS8tUvWxYzA1b3c5d7e9f1h3j5',
+    '$2a$10$vL8zdb/P/Zg1KwezRNVK1.ZClnCC08YLZ8Un3DMrMuUbvWyUhHfPq',
     'Carlos Supervisor',
     'SUPERVISOR',
     'PA-01',
     TRUE,
     '["geoloc193", "viaturas", "contingencia", "auditoria"]'::jsonb
 ),
--- atendente (senha: Atend@123!)
+-- supcontrole (senha: supervisorcobom)
+(
+    'supcontrole',
+    '$2a$10$vL8zdb/P/Zg1KwezRNVK1.ZClnCC08YLZ8Un3DMrMuUbvWyUhHfPq',
+    'Supervisor Controle',
+    'SUPERVISOR',
+    'PA-02',
+    TRUE,
+    '["geoloc193", "viaturas", "contingencia", "auditoria"]'::jsonb
+),
+-- supatendimento (senha: supervisorcobom)
+(
+    'supatendimento',
+    '$2a$10$vL8zdb/P/Zg1KwezRNVK1.ZClnCC08YLZ8Un3DMrMuUbvWyUhHfPq',
+    'Supervisor Atendimento',
+    'SUPERVISOR',
+    'PA-03',
+    TRUE,
+    '["geoloc193", "viaturas", "contingencia", "auditoria"]'::jsonb
+),
+-- atendente (senha: atendente193cobom)
 (
     'atendente',
-    '$2b$10$x4oZ3lP2qR0tU1wV6yX8A.I5jKmM5pOrR7sTvUwXyZ0a2b4c6d8e0f2h4',
+    '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi',
     'João Atendente',
     'ATENDENTE',
     'PA-01',
     TRUE,
     '["geoloc193", "chat"]'::jsonb
+),
+-- inclusor09 (senha: inclusorcobom)
+(
+    'inclusor09',
+    '$2a$10$eNL9Mv1dBjWXuJENgQB36e.MbI088Ejym15n9R2ik/G9KIU6S.q5y',
+    'Inclusor 09',
+    'INCLUSOR',
+    'PA-09',
+    TRUE,
+    '["geoloc193", "contingencia"]'::jsonb
+),
+-- inclusor10 (senha: inclusorcobom)
+(
+    'inclusor10',
+    '$2a$10$eNL9Mv1dBjWXuJENgQB36e.MbI088Ejym15n9R2ik/G9KIU6S.q5y',
+    'Inclusor 10',
+    'INCLUSOR',
+    'PA-10',
+    TRUE,
+    '["geoloc193", "contingencia"]'::jsonb
 )
 ON CONFLICT (username) DO NOTHING;
 
--- Usuários dos Postos de Atendimento PA-101 a PA-119
--- SENHAS EM TEXTO PLANO PARA FACILITAR - EM PRODUÇÃO USE BCRYPT!
+-- Usuários dos Postos de Atendimento PA-101 a PA-119 (senha: atendente193cobom)
 INSERT INTO users (username, password, name, role, pa, active, allowed_apps) VALUES
 -- PA-101 a PA-110
-('PA-101', 'atendentepa101', 'Atendente PA-101', 'ATENDENTE', '1101', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-102', 'atendentepa102', 'Atendente PA-102', 'ATENDENTE', '1102', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-103', 'atendentepa103', 'Atendente PA-103', 'ATENDENTE', '1103', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-104', 'atendentepa104', 'Atendente PA-104', 'ATENDENTE', '1104', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-105', 'atendentepa105', 'Atendente PA-105', 'ATENDENTE', '1105', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-106', 'atendentepa106', 'Atendente PA-106', 'ATENDENTE', '1106', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-107', 'atendentepa107', 'Atendente PA-107', 'ATENDENTE', '1107', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-108', 'atendentepa108', 'Atendente PA-108', 'ATENDENTE', '1108', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-109', 'atendentepa109', 'Atendente PA-109', 'ATENDENTE', '1109', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-110', 'atendentepa110', 'Atendente PA-110', 'ATENDENTE', '1110', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-101', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-101', 'ATENDENTE', '1101', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-102', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-102', 'ATENDENTE', '1102', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-103', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-103', 'ATENDENTE', '1103', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-104', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-104', 'ATENDENTE', '1104', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-105', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-105', 'ATENDENTE', '1105', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-106', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-106', 'ATENDENTE', '1106', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-107', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-107', 'ATENDENTE', '1107', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-108', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-108', 'ATENDENTE', '1108', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-109', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-109', 'ATENDENTE', '1109', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-110', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-110', 'ATENDENTE', '1110', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
 -- PA-111 a PA-119
-('PA-111', 'atendentepa111', 'Atendente PA-111', 'ATENDENTE', '1111', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-112', 'atendentepa112', 'Atendente PA-112', 'ATENDENTE', '1112', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-113', 'atendentepa113', 'Atendente PA-113', 'ATENDENTE', '1113', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-114', 'atendentepa114', 'Atendente PA-114', 'ATENDENTE', '1114', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-115', 'atendentepa115', 'Atendente PA-115', 'ATENDENTE', '1115', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-116', 'atendentepa116', 'Atendente PA-116', 'ATENDENTE', '1116', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-117', 'atendentepa117', 'Atendente PA-117', 'ATENDENTE', '1117', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-118', 'atendentepa118', 'Atendente PA-118', 'ATENDENTE', '1118', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
-('PA-119', 'atendentepa119', 'Atendente PA-119', 'ATENDENTE', '1119', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb)
+('PA-111', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-111', 'ATENDENTE', '1111', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-112', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-112', 'ATENDENTE', '1112', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-113', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-113', 'ATENDENTE', '1113', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-114', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-114', 'ATENDENTE', '1114', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-115', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-115', 'ATENDENTE', '1115', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-116', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-116', 'ATENDENTE', '1116', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-117', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-117', 'ATENDENTE', '1117', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-118', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-118', 'ATENDENTE', '1118', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb),
+('PA-119', '$2a$10$VYN2pa04JiK/acFelwtfSuLdrRzwgsnBjr5Ypjecg3Wp65OrrxWfi', 'Atendente PA-119', 'ATENDENTE', '1119', TRUE, '["geoloc193", "contingencia", "chat", "agenda", "mapa-offline"]'::jsonb)
 ON CONFLICT (username) DO NOTHING;
 
 -- Apps disponíveis no sistema
