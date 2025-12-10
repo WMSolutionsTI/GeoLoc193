@@ -2,12 +2,17 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Card,
   CardContent,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -37,6 +42,8 @@ import {
   User,
   ExternalLink,
   Navigation,
+  Send,
+  AlertTriangle,
 } from "lucide-react";
 
 type Solicitacao = {
@@ -58,8 +65,16 @@ type Solicitacao = {
   smsErrorCode?: string | null;
 };
 
+const solicitacaoSchema = z.object({
+  nomeSolicitante: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+  telefone: z.string().min(10, "Telefone inválido").max(15),
+});
+
+type SolicitacaoForm = z.infer<typeof solicitacaoSchema>;
+
 export default function GeolocAtendentePage() {
   const router = useRouter();
+  const { data: session } = useSession();
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -67,6 +82,46 @@ export default function GeolocAtendentePage() {
   const [selectedSolicitacao, setSelectedSolicitacao] = useState<Solicitacao | null>(null);
   const [chatOpen, setChatOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [novaOpen, setNovaOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit: handleFormSubmit,
+    reset: resetForm,
+    formState: { errors },
+  } = useForm<SolicitacaoForm>({
+    resolver: zodResolver(solicitacaoSchema),
+  });
+
+  const onSubmitNova = async (data: SolicitacaoForm) => {
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const response = await fetch("/api/solicitacoes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        resetForm();
+        setNovaOpen(false);
+        fetchSolicitacoes(); // Refresh the list
+      } else {
+        setSubmitError(result.error || "Erro ao criar solicitação");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      setSubmitError("Erro ao criar solicitação");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const fetchSolicitacoes = useCallback(async () => {
     try {
@@ -157,7 +212,7 @@ export default function GeolocAtendentePage() {
             <RefreshCw className="h-4 w-4 mr-2" />
             Atualizar
           </Button>
-          <Button onClick={() => router.push("/apps/geoloc193/atendente/nova")} size="sm">
+          <Button onClick={() => setNovaOpen(true)} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Nova Solicitação
           </Button>
@@ -433,6 +488,94 @@ export default function GeolocAtendentePage() {
               solicitanteNome={selectedSolicitacao.nomeSolicitante}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Nova Solicitação Dialog */}
+      <Dialog open={novaOpen} onOpenChange={setNovaOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Phone className="w-5 h-5 text-primary" />
+              Nova Solicitação
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados para enviar o link de geolocalização via SMS
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleFormSubmit(onSubmitNova)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="nomeSolicitante">
+                <User className="w-4 h-4 inline mr-1" />
+                Nome do Solicitante
+              </Label>
+              <Input
+                id="nomeSolicitante"
+                placeholder="Nome completo"
+                {...register("nomeSolicitante")}
+                className={errors.nomeSolicitante ? "border-red-500" : ""}
+              />
+              {errors.nomeSolicitante && (
+                <p className="text-sm text-red-500">
+                  {errors.nomeSolicitante.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="telefone">
+                <Phone className="w-4 h-4 inline mr-1" />
+                Telefone (com DDD)
+              </Label>
+              <Input
+                id="telefone"
+                placeholder="(00) 00000-0000"
+                {...register("telefone")}
+                className={errors.telefone ? "border-red-500" : ""}
+              />
+              {errors.telefone && (
+                <p className="text-sm text-red-500">
+                  {errors.telefone.message}
+                </p>
+              )}
+            </div>
+
+            {submitError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
+                <AlertTriangle className="h-5 w-5 text-red-600 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-red-700">{submitError}</p>
+              </div>
+            )}
+
+            <div className="flex gap-2 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                className="flex-1"
+                onClick={() => setNovaOpen(false)}
+                disabled={isSubmitting}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando...
+                  </>
+                ) : (
+                  <>
+                    <Send className="mr-2 h-4 w-4" />
+                    Criar e Enviar SMS
+                  </>
+                )}
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
