@@ -29,6 +29,14 @@ export async function GET(
       );
     }
 
+    // Check if chat has expired (for finalized solicitacoes)
+    if (solicitacao.chatExpiresAt && new Date(solicitacao.chatExpiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Chat expirado. Por favor, entre em contato com o 193 para uma nova solicitação." },
+        { status: 403 }
+      );
+    }
+
     const messages = await db
       .select()
       .from(mensagens)
@@ -78,6 +86,14 @@ export async function POST(
       return NextResponse.json(
         { error: "Solicitação não encontrada" },
         { status: 404 }
+      );
+    }
+
+    // Check if chat has expired (for finalized solicitacoes)
+    if (solicitacao.chatExpiresAt && new Date(solicitacao.chatExpiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Chat expirado. Por favor, entre em contato com o 193 para uma nova solicitação." },
+        { status: 403 }
       );
     }
 

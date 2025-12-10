@@ -31,9 +31,10 @@ export async function GET(request: NextRequest) {
             
             let cidade = "";
             let logradouro = "";
-            let plusCode = data.plus_code?.global_code || "";
+            const plusCode = data.plus_code?.global_code || "";
             
             // Extract city
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const cityComponent = addressComponents.find((comp: any) => 
               comp.types.includes("locality") || 
               comp.types.includes("administrative_area_level_2")
@@ -43,9 +44,11 @@ export async function GET(request: NextRequest) {
             }
             
             // Extract street address
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const streetNumber = addressComponents.find((comp: any) => 
               comp.types.includes("street_number")
             );
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const route = addressComponents.find((comp: any) => 
               comp.types.includes("route")
             );

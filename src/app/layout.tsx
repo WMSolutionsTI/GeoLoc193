@@ -15,7 +15,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR">
-      <body className="font-sans">
+      <body className="font-sans custom-bg">
         <Providers>{children}</Providers>
       </body>
     </html>

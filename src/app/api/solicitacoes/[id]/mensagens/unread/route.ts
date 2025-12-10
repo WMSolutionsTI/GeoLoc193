@@ -93,7 +93,8 @@ export async function PATCH(
     
     await db
       .update(mensagens)
-      .set({ lida: true })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      .set({ lida: true } as any)
       .where(
         and(
           eq(mensagens.solicitacaoId, solicitacao.id),

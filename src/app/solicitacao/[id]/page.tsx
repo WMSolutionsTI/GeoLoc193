@@ -9,12 +9,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ExpirationTimer } from "@/components/dashboard/expiration-timer";
 import { EmergencyButton } from "@/components/shared/emergency-button";
 import { SolicitanteChat } from "@/components/chat/SolicitanteChat";
-import { MapPin, CheckCircle, AlertTriangle, Flame, Loader2, RefreshCw } from "lucide-react";
+import { MapPin, AlertTriangle, Flame, Loader2 } from "lucide-react";
 
 type Solicitacao = {
   id: number;

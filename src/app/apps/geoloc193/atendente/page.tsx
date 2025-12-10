@@ -24,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { SolicitacaoRow } from "@/components/dashboard/solicitacao-card";
 import { AtendenteChat } from "@/components/chat/AtendenteChat";
-import { SmsStatusBadge } from "@/components/solicitacao/SmsStatusBadge";
 import {
   Loader2,
   Plus,
@@ -329,13 +328,6 @@ export default function GeolocAtendentePage() {
                     Atendente
                   </p>
                   <p className="font-medium">{selectedSolicitacao.atendenteName || selectedSolicitacao.atendenteUsername || 'N/A'}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-sm text-muted-foreground">Status SMS</p>
-                  <SmsStatusBadge 
-                    status={selectedSolicitacao.smsStatus || null} 
-                    errorCode={selectedSolicitacao.smsErrorCode}
-                  />
                 </div>
               </div>
 

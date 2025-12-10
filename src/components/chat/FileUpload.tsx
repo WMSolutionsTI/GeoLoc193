@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Paperclip, Loader2, X } from "lucide-react";
+import { Paperclip, Loader2 } from "lucide-react";
 
 type FileUploadProps = {
   onFileUpload: (url: string, fileName: string) => void;
@@ -11,15 +11,9 @@ type FileUploadProps = {
 
 export function FileUpload({ onFileUpload, disabled }: FileUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileSelect = useCallback((file: File) => {
-    setSelectedFile(file);
-    uploadFile(file);
-  }, []);
-
-  const uploadFile = async (file: File) => {
+  const uploadFile = useCallback(async (file: File) => {
     setIsUploading(true);
     try {
       const formData = new FormData();
@@ -38,14 +32,13 @@ export function FileUpload({ onFileUpload, disabled }: FileUploadProps) {
 
       const data = await response.json();
       onFileUpload(data.url, file.name);
-      setSelectedFile(null);
     } catch (error) {
       console.error("Error uploading file:", error);
       alert(error instanceof Error ? error.message : "Erro ao fazer upload do arquivo");
     } finally {
       setIsUploading(false);
     }
-  };
+  }, [onFileUpload]);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -54,7 +47,7 @@ export function FileUpload({ onFileUpload, disabled }: FileUploadProps) {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      handleFileSelect(file);
+      uploadFile(file);
     }
   };
 
@@ -72,13 +65,13 @@ export function FileUpload({ onFileUpload, disabled }: FileUploadProps) {
           const file = item.getAsFile();
           if (file) {
             e.preventDefault();
-            handleFileSelect(file);
+            uploadFile(file);
             break;
           }
         }
       }
     },
-    [disabled, isUploading, handleFileSelect]
+    [disabled, isUploading, uploadFile]
   );
 
   // Set up paste listener
