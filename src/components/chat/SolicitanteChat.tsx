@@ -44,6 +44,7 @@ export function SolicitanteChat({
   const [chatExpired, setChatExpired] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>("default");
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -75,12 +76,97 @@ export function SolicitanteChat({
     // Poll for new messages every 3 seconds
     pollIntervalRef.current = setInterval(fetchMessages, 3000);
     
+    // Request notification permission and register service worker
+    initializePushNotifications();
+    
     return () => {
       if (pollIntervalRef.current) {
         clearInterval(pollIntervalRef.current);
       }
     };
   }, [fetchMessages]);
+
+  const initializePushNotifications = async () => {
+    // Check if browser supports notifications
+    if (!("Notification" in window)) {
+      console.log("This browser does not support notifications");
+      return;
+    }
+
+    // Check if service workers are supported
+    if (!("serviceWorker" in navigator)) {
+      console.log("This browser does not support service workers");
+      return;
+    }
+
+    // Check current permission
+    setNotificationPermission(Notification.permission);
+
+    // If permission is default, request it
+    if (Notification.permission === "default") {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      
+      if (permission === "granted") {
+        await registerPushSubscription();
+      }
+    } else if (Notification.permission === "granted") {
+      await registerPushSubscription();
+    }
+  };
+
+  const registerPushSubscription = async () => {
+    try {
+      // Register service worker
+      const registration = await navigator.serviceWorker.register("/sw.js");
+      console.log("Service Worker registered:", registration);
+
+      // Wait for service worker to be ready
+      await navigator.serviceWorker.ready;
+
+      // Get VAPID public key from environment or use default
+      const vapidPublicKey =
+        process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
+        "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+
+      // Convert base64 string to Uint8Array
+      const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+      // Subscribe to push notifications
+      const subscription = await registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: convertedVapidKey,
+      });
+
+      console.log("Push subscription:", subscription);
+
+      // Send subscription to server
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          subscription,
+          solicitacaoId,
+        }),
+      });
+
+      console.log("Push subscription saved to server");
+    } catch (error) {
+      console.error("Error registering push subscription:", error);
+    }
+  };
+
+  // Helper function to convert VAPID key
+  const urlBase64ToUint8Array = (base64String: string) => {
+    const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/\-/g, "+").replace(/_/g, "/");
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+      outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+  };
 
   useEffect(() => {
     scrollToBottom();

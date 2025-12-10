@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { mensagens, solicitacoes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { sendPushNotification } from "@/lib/push/send";
 
 export async function GET(
   request: NextRequest,
@@ -121,6 +122,23 @@ export async function POST(
       .insert(mensagens)
       .values(insertData as typeof mensagens.$inferInsert)
       .returning();
+
+    // Send push notification if the message is from atendente and solicitacao has push subscription
+    if (remetente === "atendente" && solicitacao.pushSubscription) {
+      try {
+        const pushPayload = {
+          title: "Nova mensagem do Atendente",
+          body: tipo === "text" ? conteudo : `Mensagem de ${tipo}`,
+          url: `/solicitacao/${solicitacao.linkToken}`,
+          solicitacaoId: solicitacao.id,
+        };
+        
+        await sendPushNotification(solicitacao.pushSubscription, pushPayload);
+      } catch (pushError) {
+        console.error("Error sending push notification:", pushError);
+        // Don't fail the message creation if push fails
+      }
+    }
 
     return NextResponse.json(newMessage);
   } catch (error) {
