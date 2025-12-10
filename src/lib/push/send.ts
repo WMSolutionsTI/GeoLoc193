@@ -1,22 +1,27 @@
 import webpush from "web-push";
 
-// Configure web-push with VAPID keys
-// These should be stored in environment variables in production
+// VAPID keys for web push notifications
+// IMPORTANT: In production, always use environment variables
 // Generate keys with: npx web-push generate-vapid-keys
-const vapidKeys = {
-  publicKey:
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
-    "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U",
-  privateKey:
-    process.env.VAPID_PRIVATE_KEY ||
-    "UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTfKc-ls",
-};
+const DEFAULT_PUBLIC_KEY = "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
+const DEFAULT_PRIVATE_KEY = "UUxI4O8-FbRouAevSmBQ6o18hgE4nSG3qwvJTfKc-ls";
+
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || DEFAULT_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || DEFAULT_PRIVATE_KEY;
+
+// Warn if using default keys in production
+if (process.env.NODE_ENV === "production" && 
+    (vapidPublicKey === DEFAULT_PUBLIC_KEY || vapidPrivateKey === DEFAULT_PRIVATE_KEY)) {
+  console.warn("⚠️  WARNING: Using default VAPID keys in production! Generate and set custom keys for security.");
+}
 
 webpush.setVapidDetails(
   "mailto:admin@geoloc193.com",
-  vapidKeys.publicKey,
-  vapidKeys.privateKey
+  vapidPublicKey,
+  vapidPrivateKey
 );
+
+export { vapidPublicKey as VAPID_PUBLIC_KEY };
 
 export type PushNotificationPayload = {
   title: string;

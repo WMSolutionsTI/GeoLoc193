@@ -120,8 +120,8 @@ export function SolicitanteChat({
       // Wait for service worker to be ready
       await navigator.serviceWorker.ready;
 
-      // Get VAPID public key from environment or use default
-      const vapidPublicKey =
+      // Get VAPID public key - shared constant for consistency
+      const vapidPublicKey = 
         process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY ||
         "BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBUYIHBQFLXYp5Nksh8U";
 

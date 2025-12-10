@@ -98,16 +98,18 @@ self.addEventListener('pushsubscriptionchange', (event) => {
   console.log('Push subscription changed:', event);
   
   // Re-subscribe to push notifications
+  // Note: Without access to solicitacaoId here, we cannot update the subscription
+  // The client-side code should handle re-registration when the user returns
   event.waitUntil(
     self.registration.pushManager
-      .subscribe(event.oldSubscription.options)
+      .subscribe(event.oldSubscription?.options || { userVisibleOnly: true })
       .then((subscription) => {
-        // Send the new subscription to the server
-        return fetch('/api/push/subscribe', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(subscription),
-        });
+        console.log('New subscription obtained:', subscription);
+        // The subscription will be updated when the user next opens the chat
+        return Promise.resolve();
+      })
+      .catch((error) => {
+        console.error('Failed to re-subscribe:', error);
       })
   );
 });

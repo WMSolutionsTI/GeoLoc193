@@ -119,9 +119,10 @@ export function LocationPicker({
     setError(null);
 
     try {
-      // Use Google Geocoding API or similar
+      // TODO: Implement address geocoding using Google Geocoding API
+      // Reference: https://developers.google.com/maps/documentation/geocoding/overview
+      // This requires NEXT_PUBLIC_GOOGLE_MAPS_API_KEY in environment
       // For now, we'll just show an error that this needs to be implemented
-      // In production, you'd call a geocoding service
       setError("Busca por endereço ainda não implementada. Por favor, clique no mapa para selecionar a localização.");
     } catch {
       setError("Erro ao buscar endereço");
