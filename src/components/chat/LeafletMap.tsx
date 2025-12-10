@@ -15,6 +15,9 @@ if (typeof window !== "undefined") {
   });
 }
 
+// Default center coordinates for Brazil
+const BRAZIL_CENTER: [number, number] = [-15.7801, -47.9292];
+
 type LeafletMapProps = {
   center?: [number, number];
   onLocationSelect: (lat: number, lng: number) => void;
@@ -58,7 +61,7 @@ export default function LeafletMap({
     const initialCenter = center || 
       (selectedLocation ? [selectedLocation.latitude, selectedLocation.longitude] as [number, number] : null) ||
       userLocation || 
-      [-15.7801, -47.9292] as [number, number]; // Center of Brazil
+      BRAZIL_CENTER;
 
     const initialZoom = center || selectedLocation || userLocation ? 15 : 4;
 
@@ -87,7 +90,10 @@ export default function LeafletMap({
         mapRef.current = null;
       }
     };
-  }, []); // Only run once on mount
+    // Dependencies intentionally limited to prevent map re-initialization
+    // Map is initialized once and then updated via other effects
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Update marker when selectedLocation changes
   useEffect(() => {

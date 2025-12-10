@@ -136,7 +136,7 @@ export function LocationPicker({
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchAddress)}&limit=1&accept-language=pt-BR`,
         {
           headers: {
-            "User-Agent": "GeoLoc193/1.0",
+            "User-Agent": "GeoLoc193/1.0 (https://sos193.org)",
           },
         }
       );
