@@ -69,11 +69,15 @@ export const solicitacoes = pgTable("solicitacoes", {
     accuracy?: number;
   }>(),
   endereco: varchar("endereco", { length: 500 }),
+  cidade: varchar("cidade", { length: 255 }),
+  logradouro: varchar("logradouro", { length: 500 }),
   plusCode: varchar("plus_code", { length: 20 }),
   // Archiving fields
   archived: boolean("archived").default(false),
   archivedAt: timestamp("archived_at", { withTimezone: true }),
-  // SMS status fields
+  // Chat expiration field - 2 hours after finalization
+  chatExpiresAt: timestamp("chat_expires_at", { withTimezone: true }),
+  // SMS status fields - deprecated but kept for backward compatibility
   smsStatus: varchar("sms_status", { length: 20 }), // 'pending', 'delivered', 'failed'
   smsErrorCode: varchar("sms_error_code", { length: 100 }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -88,8 +92,9 @@ export const mensagens = pgTable("mensagens", {
     .notNull(),
   remetente: varchar("remetente", { length: 50 }).notNull(), // 'atendente', 'solicitante'
   conteudo: text("conteudo").notNull(),
-  tipo: varchar("tipo", { length: 20 }).default("text"), // 'text', 'audio', 'image'
-  mediaUrl: varchar("media_url", { length: 500 }), // URL for audio/image media
+  tipo: varchar("tipo", { length: 20 }).default("text"), // 'text', 'audio', 'image', 'file'
+  mediaUrl: varchar("media_url", { length: 500 }), // URL for audio/image/file media
+  fileName: varchar("file_name", { length: 255 }), // Original filename for file attachments
   lida: boolean("lida").default(false),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
