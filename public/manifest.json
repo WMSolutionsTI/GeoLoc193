@@ -1,0 +1,9 @@
+{
+  "name": "GeoLoc Bombeiros",
+  "short_name": "GeoLoc193",
+  "description": "Sistema de geolocalização para atendimento de emergências do Corpo de Bombeiros",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#FFFFFF",
+  "theme_color": "#D32F2F"
+}

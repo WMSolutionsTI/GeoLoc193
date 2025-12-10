@@ -1,0 +1,162 @@
+.
+├── components.json
+├── criar_db_psql.sql
+├── docker-compose.yml
+├── Dockerfile
+├── drizzle
+│   ├── 0001_good_arachne.sql
+│   └── meta
+│       ├── 0000_snapshot.json
+│       ├── 0001_snapshot.json
+│       └── _journal.json
+├── drizzle.config.ts
+├── .env
+├── .eslintrc.json
+├── estrutura.txt
+├── .gitignore
+├── next.config.js
+├── next-env.d.ts
+├── .npmrc
+├── package.json
+├── package-lock.json
+├── postcss.config.mjs
+├── public
+│   └── manifest.json
+├── src
+│   ├── app
+│   │   ├── acessar
+│   │   │   └── page.tsx
+│   │   ├── admin
+│   │   │   └── usuarios
+│   │   │       └── page.tsx
+│   │   ├── api
+│   │   │   ├── apps
+│   │   │   │   └── route.ts
+│   │   │   ├── auth
+│   │   │   │   └── [...nextauth]
+│   │   │   │       └── route.ts
+│   │   │   ├── cron
+│   │   │   │   └── archive-requests
+│   │   │   │       └── route.ts
+│   │   │   ├── health
+│   │   │   │   └── route.ts
+│   │   │   ├── sms
+│   │   │   │   └── enviar
+│   │   │   │       └── route.ts
+│   │   │   ├── solicitacoes
+│   │   │   │   ├── buscar-por-telefone
+│   │   │   │   │   └── route.ts
+│   │   │   │   ├── [id]
+│   │   │   │   │   ├── mensagens
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   ├── users
+│   │   │   │   ├── [id]
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   └── webhooks
+│   │   │       └── sms-status
+│   │   │           └── route.ts
+│   │   ├── apps
+│   │   │   ├── agenda
+│   │   │   ├── auditoria
+│   │   │   ├── chat
+│   │   │   ├── contingencia
+│   │   │   ├── geoloc193
+│   │   │   │   ├── atendente
+│   │   │   │   │   ├── nova
+│   │   │   │   │   │   └── page.tsx
+│   │   │   │   │   └── page.tsx
+│   │   │   │   ├── layout.tsx
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── supervisor
+│   │   │   │       ├── arquivadas
+│   │   │   │       │   └── page.tsx
+│   │   │   │       └── page.tsx
+│   │   │   ├── gestao-dejem
+│   │   │   ├── headsets
+│   │   │   ├── info-cobom
+│   │   │   ├── mapa-offline
+│   │   │   └── viaturas
+│   │   ├── (auth)
+│   │   │   ├── layout.tsx
+│   │   │   └── login
+│   │   │       └── page.tsx
+│   │   ├── (dashboard)
+│   │   │   ├── atendente
+│   │   │   │   ├── nova
+│   │   │   │   │   └── page.tsx
+│   │   │   │   └── page.tsx
+│   │   │   ├── dashboard
+│   │   │   │   └── page.tsx
+│   │   │   ├── layout.tsx
+│   │   │   └── supervisor
+│   │   │       └── page.tsx
+│   │   ├── globals.css
+│   │   ├── layout.tsx
+│   │   ├── page.tsx
+│   │   ├── providers.tsx
+│   │   ├── s
+│   │   │   └── [code]
+│   │   │       └── route.ts
+│   │   ├── solicitacao
+│   │   │   └── [id]
+│   │   │       └── page.tsx
+│   │   └── workspace
+│   │       └── page.tsx
+│   ├── components
+│   │   ├── chat
+│   │   │   ├── AtendenteChat.tsx
+│   │   │   ├── AudioPlayer.tsx
+│   │   │   ├── AudioRecorder.tsx
+│   │   │   ├── ImageViewer.tsx
+│   │   │   ├── PhotoCapture.tsx
+│   │   │   └── SolicitanteChat.tsx
+│   │   ├── dashboard
+│   │   │   ├── chat-interface.tsx
+│   │   │   ├── expiration-timer.tsx
+│   │   │   ├── geoloc-sidebar.tsx
+│   │   │   ├── sidebar.tsx
+│   │   │   ├── solicitacao-card.tsx
+│   │   │   └── status-badge.tsx
+│   │   ├── shared
+│   │   │   ├── emergency-button.tsx
+│   │   │   ├── header.tsx
+│   │   │   └── UnreadBadge.tsx
+│   │   ├── solicitacao
+│   │   │   └── SmsStatusBadge.tsx
+│   │   └── ui
+│   │       ├── alert-dialog.tsx
+│   │       ├── avatar.tsx
+│   │       ├── badge.tsx
+│   │       ├── button.tsx
+│   │       ├── card.tsx
+│   │       ├── dialog.tsx
+│   │       ├── dropdown-menu.tsx
+│   │       ├── input.tsx
+│   │       ├── label.tsx
+│   │       ├── select.tsx
+│   │       ├── toast.tsx
+│   │       └── tooltip.tsx
+│   ├── lib
+│   │   ├── auth
+│   │   │   └── options.ts
+│   │   ├── db
+│   │   │   ├── index.ts
+│   │   │   ├── migrate.ts
+│   │   │   ├── schema.ts
+│   │   │   └── seed.ts
+│   │   ├── sms
+│   │   │   ├── service.ts
+│   │   │   └── template-service.ts
+│   │   ├── url
+│   │   │   └── shortener.ts
+│   │   └── utils.ts
+│   ├── middleware.ts
+│   └── types
+│       └── next-auth.d.ts
+├── tailwind.config.ts
+└── tsconfig.json
+
+65 directories, 95 files
