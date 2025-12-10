@@ -4,12 +4,13 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Send, Loader2, RefreshCw, MapPin } from "lucide-react";
+import { Send, Loader2, RefreshCw, MapPin, Download, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AudioRecorder } from "@/components/chat/AudioRecorder";
 import { PhotoCapture } from "@/components/chat/PhotoCapture";
 import { AudioPlayer } from "@/components/chat/AudioPlayer";
 import { ImageViewer } from "@/components/chat/ImageViewer";
+import { FileUpload } from "@/components/chat/FileUpload";
 
 type Message = {
   id: number;
@@ -18,6 +19,7 @@ type Message = {
   conteudo: string;
   tipo?: string;
   mediaUrl?: string;
+  fileName?: string;
   lida: boolean;
   createdAt: string;
 };
@@ -170,12 +172,52 @@ export function ChatInterface({
     return date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   };
 
+  const handleSendFile = async (url: string, fileName: string) => {
+    setSending(true);
+    try {
+      const response = await fetch(`/api/solicitacoes/${solicitacaoId}/mensagens`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          conteudo: `Arquivo: ${fileName}`,
+          remetente: isAtendente ? "atendente" : "solicitante",
+          tipo: "file",
+          mediaUrl: url,
+          fileName: fileName,
+        }),
+      });
+
+      if (response.ok) {
+        await fetchMessages();
+      }
+    } catch (error) {
+      console.error("Error sending file:", error);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const renderMessageContent = (message: Message) => {
     if (message.tipo === "audio" && message.mediaUrl) {
       return <AudioPlayer src={message.mediaUrl} />;
     }
     if (message.tipo === "image" && message.mediaUrl) {
       return <ImageViewer src={message.mediaUrl} alt="Foto enviada" />;
+    }
+    if (message.tipo === "file" && message.mediaUrl) {
+      return (
+        <a 
+          href={message.mediaUrl} 
+          download={message.fileName}
+          className="flex items-center gap-2 hover:underline"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <FileText className="h-4 w-4" />
+          <span>{message.fileName || "Arquivo"}</span>
+          <Download className="h-4 w-4 ml-auto" />
+        </a>
+      );
     }
     return message.conteudo;
   };
@@ -245,6 +287,9 @@ export function ChatInterface({
           />
           <AudioRecorder onRecordingComplete={handleSendAudio} disabled={sending} />
           <PhotoCapture onPhotoCapture={handleSendPhoto} disabled={sending} />
+          {isAtendente && (
+            <FileUpload onFileUpload={handleSendFile} disabled={sending} />
+          )}
           {!isAtendente && onSendLocation && (
             <Button type="button" variant="outline" onClick={onSendLocation}>
               <MapPin className="h-4 w-4" />

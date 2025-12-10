@@ -57,4 +57,19 @@
   body {
     @apply bg-background text-foreground;
   }
+  
+  /* Custom background image support - place background.jpg in public/images/ */
+  body.custom-bg {
+    background-image: url('/images/background.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  
+  @media (max-width: 768px) {
+    body.custom-bg {
+      background-attachment: scroll;
+    }
+  }
 }

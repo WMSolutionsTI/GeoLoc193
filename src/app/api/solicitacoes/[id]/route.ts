@@ -56,14 +56,22 @@ export async function PATCH(
 ) {
   try {
     const body = await request.json();
-    const { coordenadas, endereco, plusCode, status, atendenteId } = body;
+    const { coordenadas, endereco, plusCode, cidade, logradouro, status, atendenteId } = body;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: Record<string, any> = {
       updatedAt: new Date(),
     };
 
-    if (status !== undefined) updateData.status = status;
+    if (status !== undefined) {
+      updateData.status = status;
+      // When status is set to 'finalizado', set chat expiration to 2 hours from now
+      if (status === "finalizado") {
+        const expiresAt = new Date();
+        expiresAt.setHours(expiresAt.getHours() + 2);
+        updateData.chatExpiresAt = expiresAt;
+      }
+    }
     if (coordenadas !== undefined) {
       updateData.coordenadas = coordenadas;
       // When location is received, automatically set status to 'recebido' if still 'pendente'
@@ -81,6 +89,8 @@ export async function PATCH(
       }
     }
     if (endereco !== undefined) updateData.endereco = endereco;
+    if (cidade !== undefined) updateData.cidade = cidade;
+    if (logradouro !== undefined) updateData.logradouro = logradouro;
     if (plusCode !== undefined) updateData.plusCode = plusCode;
     if (atendenteId !== undefined) updateData.atendenteId = atendenteId;
 

@@ -66,3 +66,11 @@ docker-compose.override.yml
 # Cache
 .cache/
 .npm/
+
+# Uploads
+/uploads/
+!uploads/.gitkeep
+
+# Custom images (per-installation customization)
+/public/images/background.jpg
+/public/images/logo.png

@@ -41,6 +41,7 @@ export function SolicitanteChat({
   const [newMessage, setNewMessage] = useState("");
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [chatExpired, setChatExpired] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -54,6 +55,12 @@ export function SolicitanteChat({
       if (response.ok) {
         const data = await response.json();
         setMessages(data);
+      } else if (response.status === 403) {
+        // Chat expired
+        setChatExpired(true);
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+        }
       }
     } catch (error) {
       console.error("Error fetching messages:", error);
@@ -180,6 +187,21 @@ export function SolicitanteChat({
     }
     return message.conteudo;
   };
+
+  if (chatExpired) {
+    return (
+      <Card className="border-red-500 bg-red-50">
+        <CardHeader className="text-center">
+          <CardTitle className="text-red-700">Chat Expirado</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-600 text-center">
+            Este chat expirou. Por favor, entre em contato com o 193 para uma nova solicitação.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="flex flex-col h-[400px]">

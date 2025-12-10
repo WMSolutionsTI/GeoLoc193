@@ -17,7 +17,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Send, Phone, User, ArrowLeft, CheckCircle, AlertTriangle } from "lucide-react";
+import { Loader2, Send, Phone, User, ArrowLeft, CheckCircle } from "lucide-react";
 
 const solicitacaoSchema = z.object({
   nomeSolicitante: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -34,8 +34,6 @@ export default function NovaSolicitacaoPage() {
     id: number;
     linkToken: string;
     linkExpiracao: string;
-    smsStatus?: string;
-    smsErrorCode?: string;
     atendenteName?: string;
     atendenteUsername?: string;
   } | null>(null);
@@ -94,26 +92,14 @@ export default function NovaSolicitacaoPage() {
       </div>
 
       {lastCreated ? (
-        <Card className={`border-2 ${lastCreated.smsStatus === 'failed' ? 'border-red-500 bg-red-50' : 'border-green-500 bg-green-50'}`}>
+        <Card className="border-2 border-green-500 bg-green-50">
           <CardHeader>
-            <CardTitle className={lastCreated.smsStatus === 'failed' ? 'text-red-700' : 'text-green-700'}>
-              {lastCreated.smsStatus === 'failed' ? (
-                <>
-                  <AlertTriangle className="inline w-5 h-5 mr-2" />
-                  Solicitação Criada - Falha no SMS
-                </>
-              ) : (
-                <>
-                  <CheckCircle className="inline w-5 h-5 mr-2" />
-                  Solicitação Criada com Sucesso!
-                </>
-              )}
+            <CardTitle className="text-green-700">
+              <CheckCircle className="inline w-5 h-5 mr-2" />
+              Solicitação Criada com Sucesso!
             </CardTitle>
-            <CardDescription className={lastCreated.smsStatus === 'failed' ? 'text-red-600' : 'text-green-600'}>
-              {lastCreated.smsStatus === 'failed' 
-                ? `Erro ao enviar SMS: ${lastCreated.smsErrorCode || 'Erro desconhecido'}`
-                : 'O SMS com o link de geolocalização foi enviado para o solicitante.'
-              }
+            <CardDescription className="text-green-600">
+              A solicitação foi criada. O solicitante deve acessar através da página de acesso digitando seu telefone.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -126,20 +112,19 @@ export default function NovaSolicitacaoPage() {
                 <p className="text-sm text-muted-foreground">Token</p>
                 <p className="font-mono text-sm">{lastCreated.linkToken}</p>
               </div>
-              <div>
+              <div className="col-span-2">
                 <p className="text-sm text-muted-foreground">Atendente</p>
                 <p className="font-medium">{lastCreated.atendenteName || session?.user?.name || 'N/A'}</p>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Status SMS</p>
-                <Badge variant={lastCreated.smsStatus === 'delivered' ? 'success' : lastCreated.smsStatus === 'failed' ? 'destructive' : 'secondary'}>
-                  {lastCreated.smsStatus === 'delivered' ? 'Entregue' : lastCreated.smsStatus === 'failed' ? 'Falhou' : 'Pendente'}
-                </Badge>
-              </div>
               <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Expira em</p>
+                <p className="text-sm text-muted-foreground">Link expira em</p>
                 <p>{new Date(lastCreated.linkExpiracao).toLocaleString("pt-BR")}</p>
               </div>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <p className="text-sm text-blue-800">
+                <strong>Próximo passo:</strong> O solicitante deve acessar a página de acesso do sistema e digitar os últimos 8 dígitos do telefone cadastrado.
+              </p>
             </div>
             <div className="flex gap-2">
               <Button onClick={() => setLastCreated(null)}>

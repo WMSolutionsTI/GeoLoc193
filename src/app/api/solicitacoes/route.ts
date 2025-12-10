@@ -4,7 +4,6 @@ import { authOptions } from "@/lib/auth/options";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { generateToken, calculateExpirationTime } from "@/lib/utils";
-import { sendSMS, buildLocationRequestMessage } from "@/lib/sms/service";
 import { eq, sql } from "drizzle-orm";
 
 export async function GET(request: NextRequest) {
@@ -34,6 +33,16 @@ export async function GET(request: NextRequest) {
       whereClause = sql`${whereClause} AND (archived = false OR archived IS NULL)`;
     }
 
+    // Role-based filtering: ATENDENTE sees only their own solicitacoes
+    // SUPERVISOR, ADMINISTRADOR, and INCLUSOR see all solicitacoes
+    const userRole = session.user.role;
+    const userId = parseInt(session.user.id);
+    
+    if (userRole === "ATENDENTE") {
+      whereClause = sql`${whereClause} AND s.atendente_id = ${userId}`;
+    }
+    // SUPERVISOR, ADMINISTRADOR, INCLUSOR see all (no additional filter)
+
     const results = await db.execute(sql`
       SELECT 
         s.id,
@@ -43,11 +52,14 @@ export async function GET(request: NextRequest) {
         s.status,
         s.coordenadas,
         s.endereco,
+        s.cidade,
+        s.logradouro,
         s.plus_code as "plusCode",
         s.created_at as "createdAt",
         s.updated_at as "updatedAt",
         s.link_token as "linkToken",
         s.link_expiracao as "linkExpiracao",
+        s.chat_expires_at as "chatExpiresAt",
         s.atendente_id as "atendenteId",
         s.archived,
         s.archived_at as "archivedAt",
@@ -92,18 +104,17 @@ export async function POST(request: NextRequest) {
     const linkExpiracao = calculateExpirationTime(2);
     const atendenteId = parseInt(session.user.id);
 
-    // Insert using raw SQL to include new columns
+    // Insert using raw SQL - SMS functionality removed
     const insertResult = await db.execute(sql`
       INSERT INTO solicitacoes (
         atendente_id, nome_solicitante, telefone, link_token, link_expiracao, 
-        status, sms_status, archived, created_at, updated_at
+        status, archived, created_at, updated_at
       ) VALUES (
         ${atendenteId}, ${nomeSolicitante}, ${telefone}, ${linkToken}, ${linkExpiracao},
-        'pendente', 'pending', false, NOW(), NOW()
+        'pendente', false, NOW(), NOW()
       )
       RETURNING id, nome_solicitante as "nomeSolicitante", telefone, status, 
-                link_token as "linkToken", link_expiracao as "linkExpiracao",
-                sms_status as "smsStatus", sms_error_code as "smsErrorCode"
+                link_token as "linkToken", link_expiracao as "linkExpiracao"
     `);
 
     const novaSolicitacao = insertResult.rows[0] as {
@@ -113,30 +124,7 @@ export async function POST(request: NextRequest) {
       status: string;
       linkToken: string;
       linkExpiracao: string;
-      smsStatus: string;
-      smsErrorCode: string | null;
     };
-
-    // Enviar SMS com link
-    const mensagemSMS = await buildLocationRequestMessage(nomeSolicitante, linkToken);
-    const smsResult = await sendSMS({
-      phoneNumber: telefone,
-      message: mensagemSMS,
-    });
-
-    // Update SMS status based on result - keep as pending if API accepted
-    // Only mark as failed if the API itself rejected the message
-    if (!smsResult.success) {
-      console.error("Falha ao enviar SMS:", smsResult.error);
-      await db.execute(sql`
-        UPDATE solicitacoes 
-        SET sms_status = 'failed', sms_error_code = ${smsResult.error || 'Unknown error'}
-        WHERE id = ${novaSolicitacao.id}
-      `);
-      novaSolicitacao.smsStatus = 'failed';
-      novaSolicitacao.smsErrorCode = smsResult.error || 'Unknown error';
-    }
-    // If success, keep status as 'pending' until webhook confirms delivery
 
     // Get atendente info
     const [atendente] = await db
@@ -151,7 +139,6 @@ export async function POST(request: NextRequest) {
         atendenteName: atendente?.name,
         atendenteUsername: atendente?.username,
       },
-      smsEnviado: smsResult.success,
     });
   } catch (error) {
     console.error("Error creating solicitacao:", error);

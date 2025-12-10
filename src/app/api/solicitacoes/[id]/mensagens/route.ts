@@ -29,6 +29,14 @@ export async function GET(
       );
     }
 
+    // Check if chat has expired (for finalized solicitacoes)
+    if (solicitacao.chatExpiresAt && new Date(solicitacao.chatExpiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Chat expirado. Por favor, entre em contato com o 193 para uma nova solicitação." },
+        { status: 403 }
+      );
+    }
+
     const messages = await db
       .select()
       .from(mensagens)
@@ -51,7 +59,7 @@ export async function POST(
 ) {
   try {
     const body = await request.json();
-    const { conteudo, remetente } = body;
+    const { conteudo, remetente, tipo, mediaUrl, fileName } = body;
 
     if (!conteudo || !remetente) {
       return NextResponse.json(
@@ -81,10 +89,21 @@ export async function POST(
       );
     }
 
+    // Check if chat has expired (for finalized solicitacoes)
+    if (solicitacao.chatExpiresAt && new Date(solicitacao.chatExpiresAt) < new Date()) {
+      return NextResponse.json(
+        { error: "Chat expirado. Por favor, entre em contato com o 193 para uma nova solicitação." },
+        { status: 403 }
+      );
+    }
+
     type MensagemInsert = {
       solicitacaoId: number;
       remetente: string;
       conteudo: string;
+      tipo?: string;
+      mediaUrl?: string;
+      fileName?: string;
       lida?: boolean;
     };
 
@@ -92,6 +111,9 @@ export async function POST(
       solicitacaoId: solicitacao.id,
       remetente,
       conteudo,
+      tipo: tipo || "text",
+      mediaUrl: mediaUrl || null,
+      fileName: fileName || null,
       lida: false,
     };
 
