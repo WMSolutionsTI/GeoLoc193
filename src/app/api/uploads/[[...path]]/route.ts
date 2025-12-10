@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readFile } from "fs/promises";
-import { join } from "path";
+import { resolve } from "path";
 import { existsSync } from "fs";
 
 export async function GET(
@@ -9,10 +9,10 @@ export async function GET(
 ) {
   try {
     const path = params.path || [];
-    const filePath = join(process.cwd(), "uploads", ...path);
+    const uploadsDir = resolve(process.cwd(), "uploads");
+    const filePath = resolve(uploadsDir, ...path);
 
-    // Security: prevent directory traversal
-    const uploadsDir = join(process.cwd(), "uploads");
+    // Security: prevent directory traversal by checking resolved paths
     if (!filePath.startsWith(uploadsDir)) {
       return NextResponse.json({ error: "Invalid path" }, { status: 400 });
     }
@@ -48,10 +48,11 @@ export async function GET(
         'Cache-Control': 'public, max-age=31536000, immutable',
       },
     });
-  } catch (error) {
-    console.error("Error serving file:", error);
+  } catch {
+    // Log error without exposing sensitive details
+    console.error("File serving error");
     return NextResponse.json(
-      { error: "Error serving file" },
+      { error: "Unable to serve file" },
       { status: 500 }
     );
   }

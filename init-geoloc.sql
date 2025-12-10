@@ -155,6 +155,10 @@ CREATE INDEX idx_short_urls_short_code ON short_urls(short_code);
 
 -- ====================== SEED DATA ======================
 
+-- NOTE: These password hashes are bootstrap credentials for initial system setup.
+-- In production deployment, these should be changed immediately after first login.
+-- The hashes below are generated using bcrypt for secure password storage.
+
 -- Usuários administrativos com senhas bcrypt
 -- Hashes gerados para as senhas especificadas
 INSERT INTO users (username, password, name, role, pa, active, allowed_apps) VALUES

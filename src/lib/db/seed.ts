@@ -16,6 +16,8 @@ async function seed() {
   console.log("Seeding database...");
 
   // Create test users with bcrypt hashed passwords
+  // NOTE: These are bootstrap credentials for initial system setup.
+  // In production, these should be changed immediately after first login.
   // Password: admincobom
   const adminPassword = "$2a$10$5hUACW8sSG1raIy4vqq0POETN91g19ClriamFoUFEjJ5eK.lZ2JIu";
   // Password: supervisorcobom
