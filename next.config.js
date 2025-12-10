@@ -3,6 +3,14 @@ module.exports = {
   images: {
     domains: ['localhost', 'app.cbi1.org', 'sos193.org'],
   },
+  async rewrites() {
+    return [
+      {
+        source: '/uploads/:path*',
+        destination: '/api/uploads/:path*',
+      },
+    ];
+  },
   async redirects() {
     return [
       {

@@ -15,11 +15,20 @@ type UserInsert = {
 async function seed() {
   console.log("Seeding database...");
 
-  // Criar usuários de teste com novos papéis
+  // Create test users with bcrypt hashed passwords
+  // NOTE: These are bootstrap credentials for initial system setup.
+  // In production, these should be changed immediately after first login.
+  // Password: admincobom
+  const adminPassword = "$2a$10$5hUACW8sSG1raIy4vqq0POETN91g19ClriamFoUFEjJ5eK.lZ2JIu";
+  // Password: supervisorcobom
+  const supervisorPassword = "$2a$10$OR95SWxbJwzb2fRu0qQZ8eAnndnm4qiGzTyp.Y9xfOaL6VNIUnh1S";
+  // Password: atendente193cobom
+  const atendentePassword = "$2a$10$XEIP4pnlXLaEhQxAiYd4wuDkVMid3Nc6b0c3/RgaEisLwlfVZ4J1G";
+
   const seedUsers: UserInsert[] = [
     {
       username: "admin",
-      password: "123456", // Em produção, usar hash bcrypt
+      password: adminPassword,
       name: "Administrador Sistema",
       role: "ADMINISTRADOR",
       pa: "PA-01",
@@ -27,7 +36,7 @@ async function seed() {
     },
     {
       username: "supervisor",
-      password: "123456",
+      password: supervisorPassword,
       name: "Carlos Supervisor",
       role: "SUPERVISOR",
       pa: "PA-01",
@@ -35,7 +44,7 @@ async function seed() {
     },
     {
       username: "atendente",
-      password: "123456",
+      password: atendentePassword,
       name: "João Atendente",
       role: "ATENDENTE",
       pa: "PA-01",
