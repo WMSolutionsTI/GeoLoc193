@@ -144,11 +144,22 @@ export default function GeolocAtendentePage() {
     return () => clearInterval(interval);
   }, [fetchSolicitacoes]);
 
-  const handleChat = (id: number) => {
+  const handleChat = async (id: number) => {
     const sol = solicitacoes.find((s) => s.id === id);
     if (sol) {
       setSelectedSolicitacao(sol);
       setChatOpen(true);
+      
+      // Mark messages as read when opening chat
+      try {
+        await fetch(`/api/solicitacoes/${id}/mensagens/unread`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ remetente: "atendente" }),
+        });
+      } catch (error) {
+        console.error("Error marking messages as read:", error);
+      }
     }
   };
 

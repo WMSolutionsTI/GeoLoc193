@@ -100,8 +100,15 @@ export function PhotoCapture({ onPhotoCapture, disabled }: PhotoCaptureProps) {
 
   return (
     <>
-      <Button type="button" variant="outline" onClick={handleOpen} disabled={disabled}>
-        <Camera className="h-4 w-4" />
+      <Button 
+        type="button" 
+        variant="outline" 
+        onClick={handleOpen} 
+        disabled={disabled}
+        size="lg"
+        className="min-w-[48px] min-h-[48px]"
+      >
+        <Camera className="h-5 w-5" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>

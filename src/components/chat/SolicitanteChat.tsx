@@ -254,31 +254,44 @@ export function SolicitanteChat({
         <div ref={messagesEndRef} />
       </CardContent>
       <div className="p-4 border-t">
-        <form onSubmit={handleSendMessage} className="flex gap-2">
-          <Input
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            placeholder="Digite sua mensagem..."
-            disabled={sending}
-            className="flex-1"
-          />
-          {/* Audio recording - mobile friendly */}
-          <AudioRecorder onRecordingComplete={handleSendAudio} disabled={sending} />
-          {/* Camera capture - mobile friendly */}
-          <PhotoCapture onPhotoCapture={handleSendPhoto} disabled={sending} />
-          {/* Location button */}
-          {onSendLocation && (
-            <Button type="button" variant="outline" onClick={onSendLocation}>
-              <MapPin className="h-4 w-4" />
+        <form onSubmit={handleSendMessage} className="space-y-2">
+          {/* Row 1: Text input and send button */}
+          <div className="flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Digite sua mensagem..."
+              disabled={sending}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={sending || !newMessage.trim()} size="lg">
+              {sending ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                <Send className="h-5 w-5" />
+              )}
             </Button>
-          )}
-          <Button type="submit" disabled={sending || !newMessage.trim()}>
-            {sending ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Send className="h-4 w-4" />
+          </div>
+          
+          {/* Row 2: Media action buttons - centered and larger for mobile */}
+          <div className="flex items-center justify-center gap-3">
+            {/* Audio recording - mobile friendly */}
+            <AudioRecorder onRecordingComplete={handleSendAudio} disabled={sending} />
+            {/* Camera capture - mobile friendly */}
+            <PhotoCapture onPhotoCapture={handleSendPhoto} disabled={sending} />
+            {/* Location button */}
+            {onSendLocation && (
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onSendLocation}
+                size="lg"
+                className="min-w-[48px] min-h-[48px]"
+              >
+                <MapPin className="h-5 w-5" />
+              </Button>
             )}
-          </Button>
+          </div>
         </form>
       </div>
     </Card>

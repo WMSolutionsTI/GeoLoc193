@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Flame, MapPin, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
+import { Flame, Share2, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 
 export default function AcessarPage() {
   const router = useRouter();
@@ -45,10 +45,12 @@ export default function AcessarPage() {
     }
   };
 
-  // Accept any input, no length restriction
+  // Accept only numbers (filter non-numeric characters)
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    setTelefone(value);
+    // Filter only numeric characters
+    const numericOnly = value.replace(/\D/g, "");
+    setTelefone(numericOnly);
     setError(null); // Clear error when user types
   };
 
@@ -71,7 +73,7 @@ export default function AcessarPage() {
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
+            <Share2 className="h-16 w-16 text-primary mx-auto mb-4" />
             <CardTitle className="text-2xl">Compartilhar Localização</CardTitle>
             <CardDescription className="text-lg">
               Digite o número do seu telefone para continuar
@@ -83,10 +85,10 @@ export default function AcessarPage() {
               <div className="flex gap-2">
                 <Input
                   type="tel"
-                  placeholder="Digite o telefone"
+                  placeholder="Telefone"
                   value={telefone}
                   onChange={handleChange}
-                  className="text-center text-3xl h-16 font-mono tracking-widest flex-1"
+                  className="text-center text-2xl h-16 font-mono tracking-widest flex-1"
                   autoFocus
                   disabled={loading}
                 />

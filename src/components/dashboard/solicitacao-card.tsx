@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
   User,
 } from "lucide-react";
 import { formatPhone, formatDate, getStatusColor, getStatusLabel } from "@/lib/utils";
+import { UnreadBadge } from "@/components/shared/UnreadBadge";
 
 type Solicitacao = {
   id: number;
@@ -46,13 +48,36 @@ export function SolicitacaoRow({
 }: SolicitacaoRowProps) {
   const isPending = solicitacao.status === "pendente";
   const hasLocation = !!solicitacao.coordenadas;
+  const [unreadCount, setUnreadCount] = useState(0);
   
   const googleMapsUrl = hasLocation
     ? `https://www.google.com/maps?q=${solicitacao.coordenadas?.latitude},${solicitacao.coordenadas?.longitude}`
     : null;
 
+  // Fetch unread message count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      try {
+        const response = await fetch(`/api/solicitacoes/${solicitacao.id}/mensagens/unread?remetente=atendente`);
+        if (response.ok) {
+          const data = await response.json();
+          setUnreadCount(data.unreadCount || 0);
+        }
+      } catch (error) {
+        console.error("Error fetching unread count:", error);
+      }
+    };
+
+    fetchUnreadCount();
+    // Poll every 10 seconds for unread messages
+    const interval = setInterval(fetchUnreadCount, 10000);
+    return () => clearInterval(interval);
+  }, [solicitacao.id]);
+
+  const hasUnreadMessages = unreadCount > 0;
+
   return (
-    <tr className={`border-b hover:bg-gray-50 ${isPending ? "bg-blue-50" : ""}`}>
+    <tr className={`border-b hover:bg-gray-50 ${isPending ? "bg-blue-50" : ""} ${hasUnreadMessages ? "bg-yellow-50 font-semibold" : ""}`}>
       <td className="py-3 px-4">
         <div className="flex items-center gap-2">
           <span className="font-medium">{solicitacao.nomeSolicitante}</span>
@@ -111,8 +136,9 @@ export function SolicitacaoRow({
             </Button>
           )}
           {onChat && (
-            <Button size="sm" variant="outline" onClick={() => onChat(solicitacao.id)}>
+            <Button size="sm" variant="outline" onClick={() => onChat(solicitacao.id)} className="relative">
               <MessageCircle className="w-3 h-3" />
+              {hasUnreadMessages && <UnreadBadge count={unreadCount} />}
             </Button>
           )}
           {onFinish && solicitacao.status !== "finalizado" && (
