@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Flame, Phone, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
+import { Flame, MapPin, Loader2, AlertTriangle, ArrowRight } from "lucide-react";
 
 export default function AcessarPage() {
   const router = useRouter();
@@ -14,16 +14,22 @@ export default function AcessarPage() {
   const [error, setError] = useState<string | null>(null);
 
   const buscarSolicitacao = async () => {
-    if (telefone.length < 8) {
+    // Extract only digits from telefone
+    const digitsOnly = telefone.replace(/\D/g, "");
+    
+    if (digitsOnly.length < 8) {
       setError("Digite pelo menos os últimos 8 dígitos do seu telefone.");
       return;
     }
+
+    // Get last 8 digits for search
+    const last8Digits = digitsOnly.slice(-8);
 
     setLoading(true);
     setError(null);
 
     try {
-      const response = await fetch(`/api/solicitacoes/buscar-por-telefone?telefone=${telefone}`);
+      const response = await fetch(`/api/solicitacoes/buscar-por-telefone?telefone=${last8Digits}`);
       const data = await response.json();
 
       if (response.ok && data.linkToken) {
@@ -39,13 +45,11 @@ export default function AcessarPage() {
     }
   };
 
-  // Aceitar apenas números
+  // Accept any input, no length restriction
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ""); // Remove não-números
-    if (value.length <= 9) {
-      setTelefone(value);
-      setError(null); // Clear error when user types
-    }
+    const value = e.target.value;
+    setTelefone(value);
+    setError(null); // Clear error when user types
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,10 +71,10 @@ export default function AcessarPage() {
       <main className="flex-1 flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardHeader className="text-center">
-            <Phone className="h-16 w-16 text-primary mx-auto mb-4" />
+            <MapPin className="h-16 w-16 text-primary mx-auto mb-4" />
             <CardTitle className="text-2xl">Compartilhar Localização</CardTitle>
             <CardDescription className="text-lg">
-              Digite o número do seu telefone (sem DDD) para continuar
+              Digite o número do seu telefone para continuar
             </CardDescription>
           </CardHeader>
 
@@ -79,9 +83,7 @@ export default function AcessarPage() {
               <div className="flex gap-2">
                 <Input
                   type="tel"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  placeholder="Ex: 912345678"
+                  placeholder="Digite o telefone"
                   value={telefone}
                   onChange={handleChange}
                   className="text-center text-3xl h-16 font-mono tracking-widest flex-1"
@@ -92,7 +94,7 @@ export default function AcessarPage() {
                   type="submit"
                   size="lg"
                   className="h-16 px-8"
-                  disabled={loading || telefone.length < 8}
+                  disabled={loading || telefone.replace(/\D/g, "").length < 8}
                 >
                   {loading ? (
                     <Loader2 className="h-6 w-6 animate-spin" />
@@ -106,7 +108,7 @@ export default function AcessarPage() {
               </div>
 
               <p className="text-center text-sm text-muted-foreground">
-                Digite os últimos 8 ou 9 dígitos do seu celular e clique em IR
+                Digite pelo menos os últimos 8 dígitos do seu telefone
               </p>
 
               {error && (
