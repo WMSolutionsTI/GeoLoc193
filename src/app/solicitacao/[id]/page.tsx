@@ -96,31 +96,30 @@ export default function SolicitacaoPage() {
             throw new Error("Erro ao enviar localização");
           }
 
-          // Then, fetch geocoding information
-          try {
-            const geocodingResponse = await fetch(
-              `/api/geocoding?lat=${coordenadas.latitude}&lng=${coordenadas.longitude}`
-            );
-            
-            if (geocodingResponse.ok) {
-              const geocodingData = await geocodingResponse.json();
-              
-              // Update solicitacao with geocoding data
-              await fetch(`/api/solicitacoes/${token}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  endereco: geocodingData.endereco,
-                  cidade: geocodingData.cidade,
-                  logradouro: geocodingData.logradouro,
-                  plusCode: geocodingData.plusCode,
-                }),
-              });
-            }
-          } catch (geocodingError) {
-            console.error("Error fetching geocoding:", geocodingError);
-            // Don't fail if geocoding fails
-          }
+          // Fetch geocoding information in the background (non-blocking)
+          // This doesn't affect the user experience if it fails or takes time
+          fetch(`/api/geocoding?lat=${coordenadas.latitude}&lng=${coordenadas.longitude}`)
+            .then(async (geocodingResponse) => {
+              if (geocodingResponse.ok) {
+                const geocodingData = await geocodingResponse.json();
+                
+                // Update solicitacao with geocoding data
+                await fetch(`/api/solicitacoes/${token}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    endereco: geocodingData.endereco,
+                    cidade: geocodingData.cidade,
+                    logradouro: geocodingData.logradouro,
+                    plusCode: geocodingData.plusCode,
+                  }),
+                });
+              }
+            })
+            .catch((geocodingError) => {
+              console.error("Error fetching geocoding:", geocodingError);
+              // Don't fail if geocoding fails
+            });
 
           // Send initial atendente message to chat
           try {

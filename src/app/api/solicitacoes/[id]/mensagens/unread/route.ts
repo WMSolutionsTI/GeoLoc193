@@ -91,17 +91,14 @@ export async function PATCH(
     // Mark messages from opposite remetente as read
     const oppositeRemetente = remetente === "atendente" ? "solicitante" : "atendente";
     
-    await db
-      .update(mensagens)
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .set({ lida: true } as any)
-      .where(
-        and(
-          eq(mensagens.solicitacaoId, solicitacao.id),
-          eq(mensagens.lida, false),
-          eq(mensagens.remetente, oppositeRemetente)
-        )
-      );
+    // Use raw SQL to avoid TypeScript type issues with update
+    await db.execute(sql`
+      UPDATE mensagens 
+      SET lida = true 
+      WHERE solicitacao_id = ${solicitacao.id} 
+        AND lida = false 
+        AND remetente = ${oppositeRemetente}
+    `);
 
     return NextResponse.json({ success: true });
   } catch (error) {

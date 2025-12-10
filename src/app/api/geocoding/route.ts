@@ -13,10 +13,10 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Try Google Geocoding API if key is available
+    // Try Google Geocoding API if key is available and valid
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
     
-    if (googleApiKey && googleApiKey !== "your-google-maps-api-key") {
+    if (googleApiKey && googleApiKey.length > 20 && !googleApiKey.includes("your-")) {
       try {
         const googleResponse = await fetch(
           `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}&language=pt-BR`
@@ -138,7 +138,7 @@ async function generatePlusCode(lat: number, lng: number): Promise<string> {
   try {
     // Try to use Google's Plus Code API if available
     const googleApiKey = process.env.GOOGLE_MAPS_API_KEY;
-    if (googleApiKey && googleApiKey !== "your-google-maps-api-key") {
+    if (googleApiKey && googleApiKey.length > 20 && !googleApiKey.includes("your-")) {
       const response = await fetch(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${googleApiKey}`
       );

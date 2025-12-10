@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Paperclip, Loader2 } from "lucide-react";
 
@@ -74,10 +74,13 @@ export function FileUpload({ onFileUpload, disabled }: FileUploadProps) {
     [disabled, isUploading, uploadFile]
   );
 
-  // Set up paste listener
-  if (typeof window !== "undefined") {
+  // Set up paste listener with cleanup
+  useEffect(() => {
     window.addEventListener("paste", handlePaste);
-  }
+    return () => {
+      window.removeEventListener("paste", handlePaste);
+    };
+  }, [handlePaste]);
 
   return (
     <>

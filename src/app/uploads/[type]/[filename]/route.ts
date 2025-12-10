@@ -15,8 +15,15 @@ export async function GET(
       return NextResponse.json({ error: "Tipo inválido" }, { status: 400 });
     }
 
+    // Sanitize filename to prevent path traversal
+    // Only allow alphanumeric, dash, underscore, and dot
+    const sanitizedFilename = filename.replace(/[^a-zA-Z0-9._-]/g, "");
+    if (sanitizedFilename !== filename || filename.includes("..")) {
+      return NextResponse.json({ error: "Nome de arquivo inválido" }, { status: 400 });
+    }
+
     // Construct file path
-    const filepath = join(process.cwd(), "uploads", type, filename);
+    const filepath = join(process.cwd(), "uploads", type, sanitizedFilename);
 
     // Check if file exists
     if (!existsSync(filepath)) {

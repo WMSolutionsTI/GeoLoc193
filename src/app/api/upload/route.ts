@@ -63,10 +63,12 @@ export async function POST(request: NextRequest) {
       await mkdir(typeDir, { recursive: true });
     }
 
-    // Generate unique filename
+    // Generate unique filename - sanitize extension to prevent path traversal
     const timestamp = Date.now();
     const randomString = Math.random().toString(36).substring(2, 15);
-    const extension = file.name.split(".").pop() || "bin";
+    const originalExtension = file.name.split(".").pop() || "bin";
+    // Sanitize extension: remove any path separators and limit length
+    const extension = originalExtension.replace(/[^a-z0-9]/gi, "").substring(0, 10).toLowerCase() || "bin";
     const filename = `${timestamp}-${randomString}.${extension}`;
     const filepath = join(typeDir, filename);
 
